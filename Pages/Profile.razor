@@ -436,28 +436,28 @@
 
         try
         {
-            if (isCloudConnected)
-            {
-                await Db.From<OperatorProfile>().Insert(profile);
-            }
-            else
-            {
-                long nextId = localFallbackStore.Count > 0 ? localFallbackStore.Max(p => p.Id) + 1 : 1;
-                profile.Id = nextId;
-                localFallbackStore.Add(profile);
-            }
-
+            await Db.From<OperatorProfile>().Insert(profile);
+            isCloudConnected = true;
             newName = "";
             newCallsign = "";
             newBestWpm = 60;
-            statusMessage = $"Operator profile '{profile.Callsign}' created successfully.";
+            statusMessage = $"Operator profile '{profile.Callsign}' saved to Supabase cloud.";
             isError = false;
             await Load();
         }
         catch (Exception ex)
         {
-            statusMessage = $"Insert failed: {ex.Message}";
+            // Fallback to local store if Supabase cloud is unreachable or misconfigured
+            long nextId = localFallbackStore.Count > 0 ? localFallbackStore.Max(p => p.Id) + 1 : 1;
+            profile.Id = nextId;
+            localFallbackStore.Add(profile);
+
+            newName = "";
+            newCallsign = "";
+            newBestWpm = 60;
+            statusMessage = $"Supabase write failed ({ex.Message}). Saved to local fallback. Check your Project URL in wwwroot/appsettings.json.";
             isError = true;
+            await Load();
         }
         finally
         {
@@ -471,26 +471,22 @@
         try
         {
             int updatedWpm = p.BestWpm + 5;
-            if (isCloudConnected)
-            {
-                await Db.From<OperatorProfile>()
-                    .Where(x => x.Id == p.Id)
-                    .Set(x => x.BestWpm, updatedWpm)
-                    .Update();
-            }
-            else
-            {
-                p.BestWpm = updatedWpm;
-            }
+            await Db.From<OperatorProfile>()
+                .Where(x => x.Id == p.Id)
+                .Set(x => x.BestWpm, updatedWpm)
+                .Update();
 
-            statusMessage = $"Updated WPM for {p.Callsign} to {updatedWpm} WPM.";
+            isCloudConnected = true;
+            statusMessage = $"Updated WPM for {p.Callsign} to {updatedWpm} in Supabase cloud.";
             isError = false;
             await Load();
         }
         catch (Exception ex)
         {
-            statusMessage = $"Update failed: {ex.Message}";
+            p.BestWpm += 5;
+            statusMessage = $"Supabase update failed ({ex.Message}). Updated local fallback.";
             isError = true;
+            await Load();
         }
     }
 
@@ -500,26 +496,22 @@
         try
         {
             var now = DateTime.UtcNow;
-            if (isCloudConnected)
-            {
-                await Db.From<OperatorProfile>()
-                    .Where(x => x.Id == p.Id)
-                    .Set(x => x.DeletedAt!, (DateTime?)now)
-                    .Update();
-            }
-            else
-            {
-                p.DeletedAt = now;
-            }
+            await Db.From<OperatorProfile>()
+                .Where(x => x.Id == p.Id)
+                .Set(x => x.DeletedAt!, (DateTime?)now)
+                .Update();
 
-            statusMessage = $"Operator {p.Callsign} soft-deleted (deleted_at recorded).";
+            isCloudConnected = true;
+            statusMessage = $"Operator {p.Callsign} soft-deleted in Supabase cloud (deleted_at recorded).";
             isError = false;
             await Load();
         }
         catch (Exception ex)
         {
-            statusMessage = $"Soft delete failed: {ex.Message}";
+            p.DeletedAt = DateTime.UtcNow;
+            statusMessage = $"Supabase soft-delete failed ({ex.Message}). Marked in local fallback.";
             isError = true;
+            await Load();
         }
     }
 
@@ -528,26 +520,22 @@
     {
         try
         {
-            if (isCloudConnected)
-            {
-                await Db.From<OperatorProfile>()
-                    .Where(x => x.Id == p.Id)
-                    .Set(x => x.DeletedAt!, (DateTime?)null)
-                    .Update();
-            }
-            else
-            {
-                p.DeletedAt = null;
-            }
+            await Db.From<OperatorProfile>()
+                .Where(x => x.Id == p.Id)
+                .Set(x => x.DeletedAt!, (DateTime?)null)
+                .Update();
 
-            statusMessage = $"Restored operator {p.Callsign}.";
+            isCloudConnected = true;
+            statusMessage = $"Restored operator {p.Callsign} in Supabase cloud.";
             isError = false;
             await Load();
         }
         catch (Exception ex)
         {
-            statusMessage = $"Restore failed: {ex.Message}";
+            p.DeletedAt = null;
+            statusMessage = $"Supabase restore failed ({ex.Message}). Restored in local fallback.";
             isError = true;
+            await Load();
         }
     }
 
