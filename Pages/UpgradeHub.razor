@@ -4,40 +4,38 @@
 
 <PageTitle>UPGRADE HUB // CyberType Tech Lab</PageTitle>
 
-<div class="min-h-screen bg-gray-950 text-slate-100 flex flex-col justify-between p-6 md:p-12 relative overflow-hidden font-mono select-none cursor-default">
-    <!-- Background ambiance -->
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#1f293718_1px,transparent_1px),linear-gradient(to_bottom,#1f293718_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none select-none"></div>
-    <div class="absolute -top-32 -left-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none select-none"></div>
-    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none select-none"></div>
+<div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-6 md:p-12 relative overflow-hidden font-mono select-none cursor-default">
+    <!-- Ambient Background Grid -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#33415510_1px,transparent_1px),linear-gradient(to_bottom,#33415510_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] pointer-events-none select-none"></div>
 
     <!-- Header -->
-    <header class="relative z-10 flex flex-col sm:flex-row items-center justify-between border-b border-gray-800 pb-6 gap-4 select-none">
+    <header class="relative z-10 flex flex-col sm:flex-row items-center justify-between border-b border-slate-800 pb-6 gap-4 select-none">
         <div>
             <div class="flex items-center gap-2 select-none">
-                <span class="text-xs uppercase tracking-widest text-cyan-400 font-semibold">Wave @(GameState.WaveNumber) Cleared</span>
-                <span class="px-2 py-0.5 rounded text-[10px] bg-purple-950 text-purple-300 border border-purple-800 font-bold">ARMORY AVAILABLE</span>
+                <span class="text-xs uppercase tracking-widest text-cyan-400 font-bold">SECTOR @(GameState.WaveNumber) SECURED</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-900 text-slate-300 border border-slate-700 font-bold tracking-wider">UPGRADE REQUISITION</span>
             </div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight mt-1 select-none">SYNTACTIC UPGRADE MATRIX</h1>
+            <h1 class="text-2xl font-bold text-white tracking-tight mt-1 select-none">DEFENSIVE UPGRADE MATRIX</h1>
         </div>
 
         <div class="flex items-center gap-6 text-xs select-none">
             <div class="text-right">
-                <div class="text-gray-500">CURRENT SCORE</div>
-                <div class="text-white font-bold text-base font-mono">@GameState.Score.ToString("N0")</div>
+                <div class="text-slate-500 text-[10px] uppercase">SCORE</div>
+                <div class="text-white font-bold text-sm font-mono">@GameState.Score.ToString("N0")</div>
             </div>
             <div class="text-right">
-                <div class="text-gray-500">CREDITS ACQUIRED</div>
-                <div class="text-cyan-400 font-bold text-base font-mono">@GameState.Currency CR</div>
+                <div class="text-slate-500 text-[10px] uppercase">ACCUMULATED CREDITS</div>
+                <div class="text-cyan-400 font-bold text-sm font-mono">@GameState.Currency CR</div>
             </div>
         </div>
     </header>
 
-    <!-- Center Section: 3 Centered Upgrade Cards using Tailwind Flexbox -->
+    <!-- Center Section: 3 Centered Upgrade Cards -->
     <main class="relative z-10 py-10 flex-1 flex flex-col items-center justify-center select-none">
         <div class="text-center space-y-2 mb-8 select-none">
-            <h2 class="text-xl font-bold text-white tracking-wide">SELECT AN UPGRADE TO ADVANCE TO WAVE @(GameState.WaveNumber + 1)</h2>
-            <p class="text-xs text-gray-400 max-w-xl mx-auto">
-                Each upgrade permanently modifies your ship's defensive matrix for the remainder of this run. Choose wisely based on incoming threats.
+            <h2 class="text-lg font-bold text-white tracking-wide uppercase">SELECT AN UPGRADE TO ADVANCE TO SECTOR @(GameState.WaveNumber + 1)</h2>
+            <p class="text-xs text-slate-400 max-w-lg mx-auto">
+                Each upgrade permanently modifies your starfighter's defensive matrix for the remainder of this combat run.
             </p>
         </div>
 
@@ -46,33 +44,33 @@
             @foreach (var upgrade in currentUpgrades)
             {
                 <div @onclick="() => SelectUpgrade(upgrade)"
-                     class="group relative rounded-2xl bg-gray-900/90 backdrop-blur-xl border border-gray-700 hover:border-cyan-400 p-6 flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(34,211,238,0.25)] space-y-6 select-none">
+                     class="group relative rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-400/80 p-6 flex flex-col justify-between cursor-pointer transition-all duration-150 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] space-y-6 select-none">
                     
                     <!-- Top badge & icon -->
                     <div class="space-y-4 select-none">
                         <div class="flex items-center justify-between">
-                            <span class="text-3xl group-hover:scale-110 transition-transform duration-200">
-                                @upgrade.Icon
-                            </span>
-                            <span class="text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-full @GetRarityBadge(upgrade.Rarity)">
+                            <div class="w-10 h-10 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-cyan-400 group-hover:text-cyan-300 transition-colors">
+                                @GetUpgradeSvg(upgrade.Icon)
+                            </div>
+                            <span class="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded @GetRarityBadge(upgrade.Rarity)">
                                 @upgrade.Rarity
                             </span>
                         </div>
 
                         <div>
-                            <h3 class="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                            <h3 class="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
                                 @upgrade.Title
                             </h3>
-                            <p class="text-xs text-gray-400 leading-relaxed mt-2">
+                            <p class="text-xs text-slate-400 leading-relaxed mt-2">
                                 @upgrade.Description
                             </p>
                         </div>
                     </div>
 
                     <!-- Bottom Action Button Indicator -->
-                    <div class="pt-4 border-t border-gray-800/80 select-none">
-                        <div class="w-full py-3 rounded-xl bg-gray-800 group-hover:btn-cyber-primary text-xs font-black text-gray-200 group-hover:text-black tracking-widest uppercase text-center transition-all duration-150 shadow-sm">
-                            Synthesize Upgrade ▶
+                    <div class="pt-4 border-t border-slate-800/80 select-none">
+                        <div class="w-full py-2.5 rounded bg-slate-800 group-hover:bg-cyan-500 text-xs font-bold text-slate-300 group-hover:text-slate-950 tracking-wider uppercase text-center transition-all duration-150 shadow-sm">
+                            INSTALL MODULE →
                         </div>
                     </div>
                 </div>
@@ -82,14 +80,14 @@
         <!-- Active Upgrades Loadout Strip -->
         @if (GameState.AppliedUpgrades.Count > 0)
         {
-            <div class="mt-12 w-full max-w-5xl p-4 rounded-xl bg-gray-900/60 border border-gray-800 backdrop-blur-md select-none">
-                <div class="text-[10px] uppercase tracking-wider text-gray-500 mb-2 font-semibold">Active Run Loadout (@GameState.AppliedUpgrades.Count)</div>
+            <div class="mt-10 w-full max-w-5xl p-4 rounded-lg bg-slate-900/60 border border-slate-800 select-none">
+                <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-2 font-bold">Active Loadout (@GameState.AppliedUpgrades.Count)</div>
                 <div class="flex flex-wrap gap-2">
                     @foreach (var applied in GameState.AppliedUpgrades)
                     {
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-950 border border-gray-800 text-xs text-gray-300 select-none">
-                            <span>@applied.Icon</span>
-                            <span class="font-medium text-white">@applied.Title</span>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-300 select-none">
+                            <span class="w-3.5 h-3.5 text-cyan-400">@GetUpgradeSvg(applied.Icon)</span>
+                            <span class="font-medium text-slate-200">@applied.Title</span>
                         </span>
                     }
                 </div>
@@ -98,11 +96,11 @@
     </main>
 
     <!-- Footer -->
-    <footer class="relative z-10 border-t border-gray-800 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 select-none">
-        <div>CyberType Architecture // State Mutator & Wave Sequencer</div>
+    <footer class="relative z-10 border-t border-slate-800 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 select-none">
+        <div>CyberType Terminal // Upgrade Sequencer</div>
         <div class="flex items-center gap-4 mt-2 sm:mt-0">
-            <button @onclick="SkipUpgrades" class="cursor-pointer hover:text-gray-300 underline">
-                Skip Upgrades & Proceed Direct
+            <button @onclick="SkipUpgrades" class="cursor-pointer hover:text-slate-300 text-xs">
+                Proceed without upgrade →
             </button>
         </div>
     </footer>
@@ -132,10 +130,53 @@
     {
         return rarity switch
         {
-            "Legendary" => "bg-amber-500/20 text-amber-300 border border-amber-500/40",
-            "Epic" => "bg-purple-500/20 text-purple-300 border border-purple-500/40",
-            "Rare" => "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40",
-            _ => "bg-gray-800 text-gray-400 border border-gray-700"
+            "Legendary" => "bg-amber-500/15 text-amber-300 border border-amber-500/30",
+            "Epic" => "bg-purple-500/15 text-purple-300 border border-purple-500/30",
+            "Rare" => "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30",
+            _ => "bg-slate-800 text-slate-400 border border-slate-700"
         };
     }
+
+    private RenderFragment GetUpgradeSvg(string iconKey) => builder =>
+    {
+        builder.OpenElement(0, "svg");
+        builder.AddAttribute(1, "class", "w-5 h-5 fill-current");
+        builder.AddAttribute(2, "viewBox", "0 0 24 24");
+
+        switch (iconKey)
+        {
+            case "shield":
+                builder.OpenElement(3, "path");
+                builder.AddAttribute(4, "d", "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z");
+                builder.CloseElement();
+                break;
+            case "bounty":
+                builder.OpenElement(3, "path");
+                builder.AddAttribute(4, "d", "M12 2l-5.5 9h11L12 2zm0 3.84L14.4 8h-4.8L12 5.84zM12 13l-6-2 6 11 6-11-6 2z");
+                builder.CloseElement();
+                break;
+            case "hull":
+                builder.OpenElement(3, "path");
+                builder.AddAttribute(4, "d", "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z");
+                builder.CloseElement();
+                break;
+            case "jammer":
+                builder.OpenElement(3, "path");
+                builder.AddAttribute(4, "d", "M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.83-1.83C8.42 19.37 10.13 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z");
+                builder.CloseElement();
+                break;
+            case "overdrive":
+                builder.OpenElement(3, "path");
+                builder.AddAttribute(4, "d", "M11 21h-1l1-7H7.5c-.88 0-.33-.75-.31-.78C8.48 10.94 10.42 7.54 13.01 3h1l-1 7h3.51c.4 0 .62.19.4.66C13.5 16.5 11 21 11 21z");
+                builder.CloseElement();
+                break;
+            default: // dampeners
+                builder.OpenElement(3, "path");
+                builder.AddAttribute(4, "d", "M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-4-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zM14 8l-2 2-2-2V4h4v4z");
+                builder.CloseElement();
+                break;
+        }
+
+        builder.CloseElement();
+    };
 }

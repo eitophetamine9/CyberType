@@ -15,32 +15,32 @@ namespace MidtermAppDev.Data
                 new UpgradeOption
                 {
                     Title = "Overclock Dampeners",
-                    Description = "Calibrates targeting thrusters. Reduces incoming enemy speed by 15%.",
-                    Icon = "❄️",
+                    Description = "Recalibrates thruster drag. Reduces hostile descent speed by 15%.",
+                    Icon = "dampeners",
                     Rarity = "Rare",
                     ApplyAction = s => s.EnemySpeedModifier = Math.Max(0.4, s.EnemySpeedModifier * 0.85)
                 },
                 new UpgradeOption
                 {
                     Title = "Kinetic Typo Matrix",
-                    Description = "+1 Permanent Typo Forgiveness shield replenishing at the start of every wave.",
-                    Icon = "🛡️",
+                    Description = "Generates +1 Typo Shield that replenishes at the start of every combat wave.",
+                    Icon = "shield",
                     Rarity = "Epic",
                     ApplyAction = s => s.TypoForgiveness += 1
                 },
                 new UpgradeOption
                 {
                     Title = "Bounty Protocol",
-                    Description = "Optimizes score algorithms. Increases overall score multiplier by +25%.",
-                    Icon = "💎",
+                    Description = "Enhances telemetry algorithms to increase overall score multiplier by +25%.",
+                    Icon = "bounty",
                     Rarity = "Rare",
                     ApplyAction = s => s.ScoreMultiplier += 0.25
                 },
                 new UpgradeOption
                 {
                     Title = "Nanite Hull Siphon",
-                    Description = "Restores 35 Base Health and expands max hull capacity by +20.",
-                    Icon = "🔧",
+                    Description = "Repairs 35 Base Hull Integrity and expands max hull capacity by +20 HP.",
+                    Icon = "hull",
                     Rarity = "Common",
                     ApplyAction = s => {
                         s.MaxHealth += 20;
@@ -50,16 +50,16 @@ namespace MidtermAppDev.Data
                 new UpgradeOption
                 {
                     Title = "Frequency Jammer",
-                    Description = "Increases delay between enemy spawns by 15%, giving more breathing room.",
-                    Icon = "📡",
+                    Description = "Disrupts hostile coordinates, widening the interval between enemy spawns by 15%.",
+                    Icon = "jammer",
                     Rarity = "Common",
                     ApplyAction = s => s.SpawnIntervalMs = (int)(s.SpawnIntervalMs * 1.15)
                 },
                 new UpgradeOption
                 {
                     Title = "Syntax Overdrive",
-                    Description = "Awards 500 instant bonus points and increases score multiplier by +15%.",
-                    Icon = "⚡",
+                    Description = "Instantly awards 500 bonus points and boosts overall score multiplier by +15%.",
+                    Icon = "overdrive",
                     Rarity = "Legendary",
                     ApplyAction = s => {
                         s.Score += 500;

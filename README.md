@@ -67,7 +67,7 @@ The project has been cleaned of unused template files and decoupled into modular
 
 ## Running Locally
 
-Development server: **`http://localhost:5223`**
+Development server: **http://localhost:5223``**
 
 ```bash
 dotnet run --launch-profile http
