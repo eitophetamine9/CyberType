@@ -1,6 +1,9 @@
 @page "/profile"
 @inject GameSessionState GameState
 @inject NavigationManager Navigation
+@inject Supabase.Client Db
+@using static Supabase.Postgrest.Constants
+@using MidtermAppDev.Models
 
 <PageTitle>OPERATOR PROFILE // CyberType Terminal OS</PageTitle>
 
@@ -18,10 +21,12 @@
             </div>
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-bold tracking-tight text-white uppercase">OPERATOR COMBAT DOSSIER</h1>
-                    <span class="px-2 py-0.5 rounded text-[10px] bg-slate-900 text-slate-300 border border-slate-700 font-bold tracking-wider">LEVEL 04 CLEARANCE</span>
+                    <h1 class="text-xl font-bold tracking-tight text-white uppercase">OPERATOR PROFILES // SUPABASE PERSISTENCE</h1>
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-slate-900 text-slate-300 border border-slate-700 font-bold tracking-wider">
+                        @(isCloudConnected ? "CLOUD DATABASE CONNECTED" : "LOCAL / OFFLINE FALLBACK")
+                    </span>
                 </div>
-                <p class="text-xs text-slate-400 tracking-wider">LIFETIME TELEMETRY & RUN BENCHMARKS</p>
+                <p class="text-xs text-slate-400 tracking-wider">TABLE: public.profiles // SOFT-DELETE PATTERN [deleted_at]</p>
             </div>
         </div>
 
@@ -37,14 +42,23 @@
         </div>
     </header>
 
-    <!-- Main Content: Key Records Banner + History -->
+    <!-- Main Content: Key Records Banner + Supabase CRUD -->
     <main class="relative z-10 py-8 space-y-8 flex-1">
+
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="p-3 rounded-lg border text-xs flex items-center justify-between @(isError ? "bg-red-950/40 border-red-800 text-red-200" : "bg-cyan-950/40 border-cyan-800 text-cyan-200")">
+                <span>@statusMessage</span>
+                <button @onclick='() => statusMessage = ""' class="text-slate-400 hover:text-white ml-2">✕</button>
+            </div>
+        }
+
         <!-- Key Records Showcase Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Best Accuracy -->
             <div class="rounded-xl bg-slate-900/70 border border-slate-800 p-6 shadow-md relative overflow-hidden group hover:border-emerald-500/50 transition-all duration-150">
                 <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Best Accuracy</span>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Accuracy</span>
                     <div class="w-7 h-7 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-emerald-400">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
@@ -57,7 +71,7 @@
                     </span>
                 </div>
                 <div class="mt-2 text-[11px] text-slate-500">
-                    Lifetime precision rating
+                    Active session precision
                 </div>
             </div>
 
@@ -78,134 +92,465 @@
                     <span class="text-xs text-cyan-500 font-bold uppercase">WPM</span>
                 </div>
                 <div class="mt-2 text-[11px] text-slate-500">
-                    Highest burst throughput
+                    Highest speed throughput
                 </div>
             </div>
 
-            <!-- Longest Wave Run -->
+            <!-- Total Profiles Active in Database -->
             <div class="rounded-xl bg-slate-900/70 border border-slate-800 p-6 shadow-md relative overflow-hidden group hover:border-slate-500 transition-all duration-150">
                 <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Longest Sector</span>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Profiles</span>
                     <div class="w-7 h-7 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-300">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
                         </svg>
                     </div>
                 </div>
                 <div class="mt-4 flex items-baseline gap-2">
                     <span class="text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-                        @(GameState.LongestWaveRun > 0 ? $"Sector {GameState.LongestWaveRun}" : "--")
+                        @items.Count
                     </span>
+                    <span class="text-xs text-slate-500 font-bold uppercase">OPERATORS</span>
                 </div>
                 <div class="mt-2 text-[11px] text-slate-500">
-                    Furthest defense endurance
+                    Active in public.profiles
                 </div>
             </div>
 
-            <!-- All-Time High Score -->
+            <!-- Soft Deleted Count -->
             <div class="rounded-xl bg-slate-900/70 border border-slate-800 p-6 shadow-md relative overflow-hidden group hover:border-amber-500/50 transition-all duration-150">
                 <div class="flex justify-between items-start">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">High Score</span>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Soft Deleted</span>
                     <div class="w-7 h-7 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-amber-300">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                            <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                         </svg>
                     </div>
                 </div>
                 <div class="mt-4 flex items-baseline gap-2">
                     <span class="text-3xl font-extrabold text-amber-300 font-mono tracking-tight">
-                        @(GameState.AllTimeHighScore > 0 ? GameState.AllTimeHighScore.ToString("N0") : "--")
+                        @deletedCount
                     </span>
+                    <span class="text-xs text-slate-500 font-bold uppercase">ARCHIVED</span>
                 </div>
                 <div class="mt-2 text-[11px] text-slate-500">
-                    Highest combat bounty score
+                    WHERE deleted_at IS NOT NULL
                 </div>
             </div>
         </div>
 
-        <!-- Career Totals & Breakdown -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Lifetime Metrics -->
-            <div class="rounded-xl bg-slate-900/70 border border-slate-800 p-6 space-y-4">
-                <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                    Career Telemetry
-                </h3>
-                <div class="space-y-2 text-xs font-mono">
-                    <div class="flex justify-between p-3 rounded bg-slate-950 border border-slate-800/80">
-                        <span class="text-slate-400">Total Runs Attempted</span>
-                        <span class="text-white font-bold">@GameState.TotalRunsAttempted</span>
-                    </div>
-                    <div class="flex justify-between p-3 rounded bg-slate-950 border border-slate-800/80">
-                        <span class="text-slate-400">Total Hostiles Purged</span>
-                        <span class="text-cyan-400 font-bold">@GameState.TotalWordsDestroyedAllTime</span>
-                    </div>
-                    <div class="flex justify-between p-3 rounded bg-slate-950 border border-slate-800/80">
-                        <span class="text-slate-400">Preferred Difficulty</span>
-                        <span class="text-amber-300 font-bold uppercase">@GameState.SelectedDifficulty</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Past Run History Table -->
-            <div class="lg:col-span-2 rounded-xl bg-slate-900/70 border border-slate-800 p-6 space-y-4">
-                <div class="flex items-center justify-between">
+        <!-- STEP 7: CREATE - ADD A NEW ROW FORM -->
+        <div class="rounded-xl bg-slate-900/70 border border-slate-800 p-6 shadow-md space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                     <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                        Recent Combat Logs
+                        Step 7 · Create: Add New Operator Profile (POST to public.profiles)
                     </h3>
-                    <span class="text-xs text-slate-500 font-mono">@GameState.PastRuns.Count Entries Logged</span>
+                </div>
+                <span class="text-[11px] text-slate-500">Database Milestone Action</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 uppercase">Operator Name</label>
+                    <input @bind="newName"
+                           placeholder="e.g. Marcus Vance"
+                           class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500" />
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 uppercase">Callsign</label>
+                    <input @bind="newCallsign"
+                           placeholder="e.g. CYBER-VIPER"
+                           class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500" />
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 uppercase">Tier / Difficulty</label>
+                    <select @bind="newDifficulty"
+                            class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+                        <option value="Easy">Easy (Recruit)</option>
+                        <option value="Medium">Medium (Operator)</option>
+                        <option value="Hard">Hard (Elite)</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 uppercase">Initial WPM</label>
+                    <input @bind="newBestWpm" type="number" min="0" max="250"
+                           class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-cyan-500" />
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button @onclick="Add"
+                        disabled="@saving"
+                        class="btn-tactical-primary px-6 py-2 rounded text-xs uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed">
+                    @(saving ? "Inserting Row..." : "+ Add Operator Profile")
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 6 & 8: SHOW ROWS, UPDATE, SOFT DELETE -->
+        <div class="rounded-xl bg-slate-900/70 border border-slate-800 p-6 shadow-md space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                        Step 6 & 8 · Database Profiles (Read, Update, Soft Delete)
+                    </h3>
+                    <span class="text-xs text-slate-500 font-mono">(@items.Count active)</span>
                 </div>
 
-                @if (GameState.PastRuns.Count == 0)
-                {
-                    <div class="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded space-y-2">
-                        <div>No combat telemetry logged yet.</div>
-                        <p class="text-slate-400">Deploy your first run from the Briefing Room to begin recording operator records.</p>
-                    </div>
-                }
-                else
-                {
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs font-mono">
-                            <thead class="text-slate-500 uppercase border-b border-slate-800 text-[10px]">
-                                <tr>
-                                    <th class="py-2.5 px-3">Timestamp</th>
-                                    <th class="py-2.5 px-3">Difficulty</th>
-                                    <th class="py-2.5 px-3">Sector</th>
-                                    <th class="py-2.5 px-3">Score</th>
-                                    <th class="py-2.5 px-3">Accuracy</th>
-                                    <th class="py-2.5 px-3">WPM</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800/60">
-                                @foreach (var run in GameState.PastRuns)
-                                {
-                                    <tr class="hover:bg-slate-800/40 text-slate-300">
-                                        <td class="py-2 px-3 text-slate-400">@run.Timestamp.ToString("HH:mm:ss")</td>
-                                        <td class="py-2 px-3 font-semibold @(run.Difficulty == GameDifficulty.Hard ? "text-rose-400" : run.Difficulty == GameDifficulty.Easy ? "text-emerald-400" : "text-amber-400")">
-                                            @run.Difficulty
-                                        </td>
-                                        <td class="py-2 px-3 font-bold text-cyan-400">Sector @run.WaveReached</td>
-                                        <td class="py-2 px-3 text-white font-bold">@run.FinalScore.ToString("N0")</td>
-                                        <td class="py-2 px-3 text-emerald-400">@run.Accuracy%</td>
-                                        <td class="py-2 px-3 text-cyan-300 font-bold">@run.Wpm WPM</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
+                <div class="flex items-center gap-2">
+                    <button @onclick="() => showDeleted = !showDeleted"
+                            class="btn-tactical-outline px-3 py-1.5 rounded text-[11px] text-slate-300">
+                        @(showDeleted ? "Hide Archived Rows" : $"View Soft Deleted ({deletedCount})")
+                    </button>
+                    <button @onclick="Load"
+                            class="btn-tactical-outline px-3 py-1.5 rounded text-[11px] text-slate-300">
+                        ↻ Refresh
+                    </button>
+                </div>
             </div>
+
+            @if (loading)
+            {
+                <div class="p-8 text-center text-xs text-slate-500 font-mono animate-pulse">
+                    Querying Supabase: SELECT * FROM public.profiles WHERE deleted_at IS NULL...
+                </div>
+            }
+            else if (items.Count == 0 && !showDeleted)
+            {
+                <div class="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded space-y-2">
+                    <div>No active profiles found in public.profiles.</div>
+                    <p class="text-slate-400">Use the form above to insert your first operator row into the database.</p>
+                </div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead class="text-slate-500 uppercase border-b border-slate-800 text-[10px]">
+                            <tr>
+                                <th class="py-2.5 px-3">ID</th>
+                                <th class="py-2.5 px-3">Operator Name</th>
+                                <th class="py-2.5 px-3">Callsign</th>
+                                <th class="py-2.5 px-3">Difficulty</th>
+                                <th class="py-2.5 px-3">Best WPM</th>
+                                <th class="py-2.5 px-3">Accuracy</th>
+                                <th class="py-2.5 px-3 text-right">Actions (Update / Soft Delete)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60">
+                            @foreach (var p in items)
+                            {
+                                <tr class="hover:bg-slate-800/40 text-slate-300">
+                                    <td class="py-2.5 px-3 text-slate-500">#@p.Id</td>
+                                    <td class="py-2.5 px-3 font-semibold text-white">@p.Name</td>
+                                    <td class="py-2.5 px-3 text-cyan-400 font-bold">@p.Callsign</td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="px-2 py-0.5 rounded text-[10px] border @(p.Difficulty == "Hard" ? "border-rose-800 text-rose-300" : p.Difficulty == "Easy" ? "border-emerald-800 text-emerald-300" : "border-amber-800 text-amber-300")">
+                                            @p.Difficulty
+                                        </span>
+                                    </td>
+                                    <td class="py-2.5 px-3 font-bold text-cyan-300 font-mono">@p.BestWpm WPM</td>
+                                    <td class="py-2.5 px-3 text-emerald-400">@p.Accuracy%</td>
+                                    <td class="py-2.5 px-3 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <!-- Step 8: Update / Patch (+5 WPM boost or calibrate) -->
+                                            <button @onclick="() => BoostWpm(p)"
+                                                    title="Sends PATCH to update Best WPM"
+                                                    class="btn-tactical-outline px-2.5 py-1 rounded text-[10px] text-cyan-300">
+                                                +5 WPM
+                                            </button>
+                                            <!-- Step 8: Soft delete -->
+                                            <button @onclick="() => Remove(p)"
+                                                    title="Sets deleted_at = DateTime.UtcNow"
+                                                    class="btn-tactical-danger px-2.5 py-1 rounded text-[10px]">
+                                                Soft Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (showDeleted)
+            {
+                <div class="mt-6 pt-4 border-t border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-amber-400 font-bold uppercase tracking-wider">
+                            Archived Soft-Deleted Rows (WHERE deleted_at IS NOT NULL)
+                        </span>
+                        <span class="text-slate-500 font-mono text-[10px]">Verifies Step 9: Rows have deleted_at timestamp</span>
+                    </div>
+
+                    @if (deletedItems.Count == 0)
+                    {
+                        <div class="text-xs text-slate-500 font-mono p-4 bg-slate-950/60 rounded border border-slate-800">
+                            No soft-deleted rows found. Clicking "Soft Delete" on an active row above will set its deleted_at timestamp.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs font-mono opacity-80">
+                                <thead class="text-slate-500 uppercase border-b border-slate-800 text-[10px]">
+                                    <tr>
+                                        <th class="py-2 px-3">ID</th>
+                                        <th class="py-2 px-3">Name</th>
+                                        <th class="py-2 px-3">Callsign</th>
+                                        <th class="py-2 px-3">Deleted At (timestamptz)</th>
+                                        <th class="py-2 px-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800/40">
+                                    @foreach (var d in deletedItems)
+                                    {
+                                        <tr class="text-slate-400 bg-red-950/10">
+                                            <td class="py-2 px-3">#@d.Id</td>
+                                            <td class="py-2 px-3 line-through">@d.Name</td>
+                                            <td class="py-2 px-3">@d.Callsign</td>
+                                            <td class="py-2 px-3 text-amber-300 font-mono">@d.DeletedAt?.ToString("yyyy-MM-dd HH:mm:ss UTC")</td>
+                                            <td class="py-2 px-3 text-right">
+                                                <button @onclick="() => Restore(d)"
+                                                        class="btn-tactical-outline px-2 py-0.5 rounded text-[10px] text-emerald-400">
+                                                    Restore
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </main>
 
     <!-- Footer -->
     <footer class="relative z-10 border-t border-slate-800 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
-        <div>Operator Telemetry & Diagnostics // CyberType OS</div>
-        <div class="mt-2 sm:mt-0">Local Storage State: Synchronized</div>
+        <div>Operator Telemetry & Database Milestone // CIT-U Computer Studies Department</div>
+        <div class="mt-2 sm:mt-0 font-mono">
+            Storage Pattern: Soft Delete via <code class="text-cyan-400">deleted_at timestamptz</code>
+        </div>
     </footer>
 </div>
 
 @code {
+    private List<OperatorProfile> items = new();
+    private List<OperatorProfile> deletedItems = new();
+    private int deletedCount = 0;
+
+    private string newName = "";
+    private string newCallsign = "";
+    private string newDifficulty = "Medium";
+    private int newBestWpm = 60;
+
+    private bool saving = false;
+    private bool loading = false;
+    private bool showDeleted = false;
+    private bool isCloudConnected = false;
+    private string statusMessage = "";
+    private bool isError = false;
+
+    // In-memory fallback list if Supabase cloud keys are in placeholder state
+    private static List<OperatorProfile> localFallbackStore = new()
+    {
+        new OperatorProfile { Id = 1, Name = "Alex Mercer", Callsign = "CYBER-VIPER", Difficulty = "Hard", BestWpm = 84, Accuracy = 98.50m, HighScore = 42500, CreatedAt = DateTime.UtcNow.AddDays(-2) },
+        new OperatorProfile { Id = 2, Name = "Elena Vance", Callsign = "NEO-RAVEN", Difficulty = "Medium", BestWpm = 68, Accuracy = 96.20m, HighScore = 28900, CreatedAt = DateTime.UtcNow.AddDays(-1) },
+        new OperatorProfile { Id = 3, Name = "Marcus Ward", Callsign = "GHOST-STRIKER", Difficulty = "Easy", BestWpm = 52, Accuracy = 94.00m, HighScore = 16400, CreatedAt = DateTime.UtcNow }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    // Step 6: Show the rows on a page (SELECT * FROM profiles WHERE deleted_at IS NULL)
+    private async Task Load()
+    {
+        loading = true;
+        try
+        {
+            var res = await Db.From<OperatorProfile>()
+                .Where(p => p.DeletedAt == null)
+                .Order(p => p.Id, Ordering.Ascending)
+                .Range(0, 49)
+                .Get();
+
+            items = res.Models;
+            isCloudConnected = true;
+
+            // Also load soft-deleted rows for verification
+            var deletedRes = await Db.From<OperatorProfile>()
+                .Where(p => p.DeletedAt != null)
+                .Order(p => p.Id, Ordering.Descending)
+                .Range(0, 49)
+                .Get();
+
+            deletedItems = deletedRes.Models;
+            deletedCount = deletedItems.Count;
+        }
+        catch (Exception)
+        {
+            // Fallback gracefully to local in-memory store so the UI is 100% interactive even with placeholder keys
+            isCloudConnected = false;
+            items = localFallbackStore.Where(p => p.DeletedAt == null).OrderBy(p => p.Id).ToList();
+            deletedItems = localFallbackStore.Where(p => p.DeletedAt != null).OrderByDescending(p => p.Id).ToList();
+            deletedCount = deletedItems.Count;
+            statusMessage = "Using local profile store. To sync with live Supabase cloud, configure your Project URL & Key in wwwroot/appsettings.json.";
+            isError = false;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    // Step 7: Create: Add a new row (INSERT into public.profiles)
+    private async Task Add()
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            statusMessage = "Please enter an Operator Name.";
+            isError = true;
+            return;
+        }
+
+        string callsign = string.IsNullOrWhiteSpace(newCallsign) ? newName.ToUpper().Replace(" ", "-") : newCallsign;
+        saving = true;
+
+        var profile = new OperatorProfile
+        {
+            Name = newName.Trim(),
+            Callsign = callsign.Trim(),
+            Difficulty = newDifficulty,
+            BestWpm = Math.Max(0, newBestWpm),
+            Accuracy = 100.00m,
+            HighScore = 0,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        try
+        {
+            if (isCloudConnected)
+            {
+                await Db.From<OperatorProfile>().Insert(profile);
+            }
+            else
+            {
+                long nextId = localFallbackStore.Count > 0 ? localFallbackStore.Max(p => p.Id) + 1 : 1;
+                profile.Id = nextId;
+                localFallbackStore.Add(profile);
+            }
+
+            newName = "";
+            newCallsign = "";
+            newBestWpm = 60;
+            statusMessage = $"Operator profile '{profile.Callsign}' created successfully.";
+            isError = false;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Insert failed: {ex.Message}";
+            isError = true;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    // Step 8: Update (PATCH to public.profiles)
+    private async Task BoostWpm(OperatorProfile p)
+    {
+        try
+        {
+            int updatedWpm = p.BestWpm + 5;
+            if (isCloudConnected)
+            {
+                await Db.From<OperatorProfile>()
+                    .Where(x => x.Id == p.Id)
+                    .Set(x => x.BestWpm, updatedWpm)
+                    .Update();
+            }
+            else
+            {
+                p.BestWpm = updatedWpm;
+            }
+
+            statusMessage = $"Updated WPM for {p.Callsign} to {updatedWpm} WPM.";
+            isError = false;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Update failed: {ex.Message}";
+            isError = true;
+        }
+    }
+
+    // Step 8: Soft Delete (Sets deleted_at = DateTime.UtcNow)
+    private async Task Remove(OperatorProfile p)
+    {
+        try
+        {
+            var now = DateTime.UtcNow;
+            if (isCloudConnected)
+            {
+                await Db.From<OperatorProfile>()
+                    .Where(x => x.Id == p.Id)
+                    .Set(x => x.DeletedAt!, (DateTime?)now)
+                    .Update();
+            }
+            else
+            {
+                p.DeletedAt = now;
+            }
+
+            statusMessage = $"Operator {p.Callsign} soft-deleted (deleted_at recorded).";
+            isError = false;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Soft delete failed: {ex.Message}";
+            isError = true;
+        }
+    }
+
+    // Restore a soft-deleted row
+    private async Task Restore(OperatorProfile p)
+    {
+        try
+        {
+            if (isCloudConnected)
+            {
+                await Db.From<OperatorProfile>()
+                    .Where(x => x.Id == p.Id)
+                    .Set(x => x.DeletedAt!, (DateTime?)null)
+                    .Update();
+            }
+            else
+            {
+                p.DeletedAt = null;
+            }
+
+            statusMessage = $"Restored operator {p.Callsign}.";
+            isError = false;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Restore failed: {ex.Message}";
+            isError = true;
+        }
+    }
+
     private void StartRunFromProfile()
     {
         GameState.ResetRun();
